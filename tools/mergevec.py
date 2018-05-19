@@ -117,7 +117,7 @@ def merge_vec_files(vec_directory, output_vec_file):
 	try:
 		with open(files[0], 'rb') as vecfile:
 			content = ''.join(str(line) for line in vecfile.readlines())
-			val = struct.unpack('<iihh', content[:12])
+			val = struct.unpack('<iihh', bytes(content[:12], "utf-8"))
 			prev_image_size = val[1]
 	except IOError as e:
 		print('An IO error occured while processing the file: {0}'.format(f))
@@ -130,9 +130,11 @@ def merge_vec_files(vec_directory, output_vec_file):
 		try:
 			with open(f, 'rb') as vecfile:	
 				content = ''.join(str(line) for line in vecfile.readlines())
-				val = struct.unpack('<iihh', content[:12])
+				val = struct.unpack('<iihh', bytes(content[:12],"utf-8"))
 				num_images = val[0]
+				print(num_images)
 				image_size = val[1]
+				print(image_size)
 				if image_size != prev_image_size:
 					err_msg = """The image sizes in the .vec files differ. These values must be the same. \n The image size of file {0}: {1}\n 
 						The image size of previous files: {0}""".format(f, image_size, prev_image_size)
@@ -146,7 +148,8 @@ def merge_vec_files(vec_directory, output_vec_file):
 	
 	# Iterate through the .vec files, writing their data (not the header) to the output file
 	# '<iihh' means 'little endian, int, int, short, short'
-	header = struct.pack('<iihh', total_num_images, image_size, 0, 0)
+	print(total_num_images)
+	header = struct.pack('<qqhh', total_num_images, image_size, 0, 0)
 	try:
 		with open(output_vec_file, 'wb') as outputfile:
 			outputfile.write(header)
@@ -155,7 +158,7 @@ def merge_vec_files(vec_directory, output_vec_file):
 				with open(f, 'rb') as vecfile:
 					content = ''.join(str(line) for line in vecfile.readlines())
 					data = content[12:]
-					outputfile.write(data)
+					outputfile.write(bytes(data, "utf-8"))
 	except Exception as e:
 		exception_response(e)
 
